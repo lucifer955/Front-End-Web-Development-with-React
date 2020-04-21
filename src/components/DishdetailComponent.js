@@ -5,44 +5,43 @@ import { Control, LocalForm, Errors } from 'react-redux-form';
 import { Link } from 'react-router-dom';
 
 
-    function RenderDish({dish}) {
-        return(
-            <Card>
-                <CardImg width="100%" src={dish.image} alt={dish.name}/>
-                <CardBody>
-                    <CardTitle>{dish.name}</CardTitle>
-                    <CardText>{dish.description}</CardText>
-                </CardBody>
-            </Card>
-        );
-    }
+function RenderDish({dish}) {
+    return(
+        <Card>
+            <CardImg width="100%" src={dish.image} alt={dish.name}/>
+            <CardBody>
+                <CardTitle>{dish.name}</CardTitle>
+                <CardText>{dish.description}</CardText>
+            </CardBody>
+        </Card>
+    );
+}
 
-    function RenderComments({comments}) {
-        
-        const commentList = comments.map((comment) => {
-
-            return (
-                    <li key={comment.id} >
-                        {comment.comment}
-                        <br/>
-                        <br/>
-                        -- {comment.author}, {new Intl.DateTimeFormat('en-US',{ year: 'numeric',  month: 'short', day: '2-digit'}).format(new Date(Date.parse(comment.date)))}
-                        <br/>
-                        <br/>
-                    </li>
-            );
-        });
+function RenderComments({comments, addComment, dishId}) {
+    const commentList = comments.map((comment) => {
 
         return (
-            <div>
-                <h4>Comments</h4>
-                <ul className="list-unstyled">
-                    { commentList }
-                </ul>
-                <CommentForm />
-            </div>
+            <li key={comment.id} >
+                {comment.comment}
+                <br/>
+                <br/>
+                -- {comment.author}, {new Intl.DateTimeFormat('en-US',{ year: 'numeric',  month: 'short', day: '2-digit'}).format(new Date(Date.parse(comment.date)))}
+                <br/>
+                <br/>
+            </li>
         );
-    }
+    });
+
+    return (
+        <div>
+            <h4>Comments</h4>
+            <ul className="list-unstyled">
+                { commentList }
+            </ul>
+            <CommentForm dishId={dishId} addComment={addComment} />
+        </div>
+    );
+}
 
 
     const DishDetail = (props) => {
@@ -65,7 +64,11 @@ import { Link } from 'react-router-dom';
                             <RenderDish dish={props.dish} />
                         </div>
                         <div className="col-12 col-md-5 m-1 text-left">
-                            <RenderComments comments={props.comments} />
+                            <RenderComments 
+                                comments={props.comments}
+                                addComment={props.addComment}
+                                dishId={props.dish.id}
+                            />
                         </div>
                     </div>
                 </div>
@@ -84,7 +87,7 @@ const required = (val) => val && val.length;
 const maxLength = (len) => (val) => !(val) || (val.length <= len);
 const minLength = (len) => (val) => val && (val.length >= len);
 
-export class CommentForm extends Component {
+class CommentForm extends Component {
     constructor(props) {
         super(props);
 
@@ -101,10 +104,7 @@ export class CommentForm extends Component {
 
     handleSubmit(values){
         this.toggleModal();
-
-        console.log('Comment: ' + JSON.stringify(values));
-        alert('Comment: ' + JSON.stringify(values));
-        //event.preventDefault();
+        this.props.addComment(this.props.dishId, values.rating, values.author, values.comment);  
     }
 
     render() {
@@ -173,9 +173,9 @@ export class CommentForm extends Component {
                                         <Label htmlFor="feedback" md={12}>Your feedback</Label>
                                         <Col md={12}>
                                             <Control.textarea 
-                                                model=".message" 
-                                                id="message" 
-                                                name="message" 
+                                                model=".comment" 
+                                                id="comment" 
+                                                name="comment" 
                                                 rows="6" 
                                                 className="form-control" 
                                                 validators= {
@@ -186,7 +186,7 @@ export class CommentForm extends Component {
                                             />
                                             <Errors 
                                                 className="text-danger" 
-                                                model=".message" 
+                                                model=".comment" 
                                                 show="touched" 
                                                 messages= {
                                                     { 
